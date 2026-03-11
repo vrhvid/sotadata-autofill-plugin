@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "SOTA Autofill",
+  "version": "1.0",
+
+  "description": "Plugin for SOTAData platform, which helps with enetering the data for both activations and chases.",
+  "homepage_url": "https://github.com/vrhvid/sotadata-autofill-plugin",
+  "icons": {
+    "48": "icons/beasts-48.png"
+  },
+
+  "permissions": ["activeTab", "storage"],
+
+  "content_scripts": [
+    {
+      "matches": ["*://www.sotadata.org.uk/*/upload"],
+      "js": ["defaultSettings.js"]
+    }
+  ]
+}
