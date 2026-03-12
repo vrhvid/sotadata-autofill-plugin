@@ -58,7 +58,7 @@ divformsubmit.setAttribute("value", "SAVE SETTINGS");
 
 divdiscard = document.createElement("button");
 divdiscard.innerHTML = "DISCARD CHANGES";
-divdiscard.addEventListener("submit", (event) => {
+divdiscard.addEventListener("click", (event) => {
     sotadataautofill_loadSettings();
 });
 
@@ -88,6 +88,12 @@ const observer = new MutationObserver(() => {
 
     if(modal && !document.getElementById("sota-autofill-plugin")){
         modal.appendChild(div);
+
+        parentdiv = document.querySelector(".modal-body");
+        parentdiv.querySelectorAll(".col-8")[1].querySelectorAll("input")[0].id = "originalcallsign";
+        parentdiv.querySelectorAll(".form-select")[0].id = "originalband";
+        parentdiv.querySelectorAll(".form-select")[1].id = "originalmode";
+        
         sotadataautofill_loadSettings();
     }
 
@@ -105,12 +111,18 @@ function sotadataautofill_saveSettings(){
 
     var settings = {callsign: callsign, band: band, mode: mode}; 
     browser.storage.local.set({settings});
+
+    document.getElementById("originalcallsign").value = callsign;
+    document.getElementById("originalband").value = band;
+    document.getElementById("originalmode").value = mode;
 }
 
 function sotadataautofill_loadSettings(){
     browser.storage.local.get("settings").then(function(item){
-        document.getElementById("callsign").value = item.settings.callsign;
-        document.getElementById("band").value = item.settings.band;
-        document.getElementById("mode").value = item.settings.mode;
+        if(item.settings){
+            document.getElementById("callsign").value = document.getElementById("originalcallsign").value = item.settings.callsign;
+            document.getElementById("band").value = document.getElementById("originalband").value = item.settings.band;
+            document.getElementById("mode").value = document.getElementById("originalmode").value = item.settings.mode;
+        }  
     });
 }
