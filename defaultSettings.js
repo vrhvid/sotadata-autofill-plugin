@@ -3,7 +3,7 @@ div = document.createElement("div");
 divform = document.createElement("form");
 divform.addEventListener("submit", (event) => {
     event.preventDefault();
-    sotadataautofill_saveSettings();
+    sotadataautofill_saveSettings(true);
 });
 
 divformlabelcallsign = document.createElement("label");
@@ -59,7 +59,7 @@ divformsubmit.setAttribute("value", "SAVE SETTINGS");
 divdiscard = document.createElement("button");
 divdiscard.innerHTML = "DISCARD CHANGES";
 divdiscard.addEventListener("click", (event) => {
-    sotadataautofill_loadSettings();
+    sotadataautofill_loadSettings(true);
 });
 
 br = document.createElement("br");
@@ -84,17 +84,30 @@ div.id = "sota-autofill-plugin";
 
 const observer = new MutationObserver(() => {
 
+    mainbuttons = document.querySelectorAll("button");
+    for (i = 0; i < mainbuttons.length; i++){
+        if(mainbuttons[i].innerText == "Add Chaser QSO" && !mainbuttons[i].id){
+            mainbuttons[i].id = "chaseraddbutton";
+        }
+    }
+
     const modal = document.querySelector("app-chaser-modal");
 
     if(modal && !document.getElementById("sota-autofill-plugin")){
         modal.appendChild(div);
+
+        headerdiv = document.querySelector(".modal-header");
+        closebutton = headerdiv.querySelector("button")
+        if(!closebutton.id){
+            closebutton.id = "chaserclosebutton"
+        }
 
         parentdiv = document.querySelector(".modal-body");
         parentdiv.querySelectorAll(".col-8")[1].querySelectorAll("input")[0].id = "originalcallsign";
         parentdiv.querySelectorAll(".form-select")[0].id = "originalband";
         parentdiv.querySelectorAll(".form-select")[1].id = "originalmode";
         
-        sotadataautofill_loadSettings();
+        sotadataautofill_loadSettings(false);
     }
 
 });
@@ -117,12 +130,33 @@ function sotadataautofill_saveSettings(){
     document.getElementById("originalmode").value = mode;
 }
 
-function sotadataautofill_loadSettings(){
+function sotadataautofill_loadSettings(update){
     browser.storage.local.get("settings").then(function(item){
         if(item.settings){
-            document.getElementById("callsign").value = document.getElementById("originalcallsign").value = item.settings.callsign;
+            document.getElementById("callsign").value = item.settings.callsign;
+            sotadataautofill_setTextValue(document.getElementById("originalcallsign"), item.settings.callsign);
+            
             document.getElementById("band").value = document.getElementById("originalband").value = item.settings.band;
+            document.getElementById("originalband").dispatchEvent(new Event('change', {bubbles: true }));
+
             document.getElementById("mode").value = document.getElementById("originalmode").value = item.settings.mode;
+            document.getElementById("originalmode").dispatchEvent(new Event('change', {bubbles: true }));
+
+            if(update){
+                document.getElementById("chaserclosebutton").dispatchEvent(new Event("click", {bubbles: true}));
+                document.getElementById("chaseraddbutton").dispatchEvent(new Event("click", {bubbles: true}));
+            }
         }  
     });
+}
+
+function sotadataautofill_setTextValue(element, value) {
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+    ).set;
+
+    nativeSetter.call(element, value);
+
+    element.dispatchEvent(new Event("input", {bubbles: true }));
 }
