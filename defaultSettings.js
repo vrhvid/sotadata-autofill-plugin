@@ -3,7 +3,15 @@ div = document.createElement("div");
 divform = document.createElement("form");
 divform.addEventListener("submit", (event) => {
     event.preventDefault();
-    sotadataautofill_saveSettings(true);
+
+    var callsign = document.getElementById("callsign").value;
+    var band = document.getElementById("band").value;
+    var mode = document.getElementById("mode").value;
+
+    var settings = {callsign: callsign, band: band, mode: mode}; 
+    browser.storage.local.set({settings});
+
+    sotadataautofill_loadSettings(true);
 });
 
 divformlabelcallsign = document.createElement("label");
@@ -117,19 +125,6 @@ observer.observe(document.body, {
     subtree: true
 });
 
-function sotadataautofill_saveSettings(){
-    var callsign = document.getElementById("callsign").value;
-    var band = document.getElementById("band").value;
-    var mode = document.getElementById("mode").value;
-
-    var settings = {callsign: callsign, band: band, mode: mode}; 
-    browser.storage.local.set({settings});
-
-    document.getElementById("originalcallsign").value = callsign;
-    document.getElementById("originalband").value = band;
-    document.getElementById("originalmode").value = mode;
-}
-
 function sotadataautofill_loadSettings(update){
     browser.storage.local.get("settings").then(function(item){
         if(item.settings){
@@ -143,6 +138,7 @@ function sotadataautofill_loadSettings(update){
             document.getElementById("originalmode").dispatchEvent(new Event('change', {bubbles: true }));
 
             if(update){
+                console.log("update!")
                 document.getElementById("chaserclosebutton").dispatchEvent(new Event("click", {bubbles: true}));
                 document.getElementById("chaseraddbutton").dispatchEvent(new Event("click", {bubbles: true}));
             }
