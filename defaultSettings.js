@@ -111,9 +111,18 @@ const observer = new MutationObserver(() => {
         }
 
         parentdiv = document.querySelector(".modal-body");
+        
         parentdiv.querySelectorAll(".col-8")[1].querySelectorAll("input")[0].id = "originalcallsign";
+        parentdiv.querySelectorAll(".col-8")[5].querySelectorAll("input")[0].id = "originaltime";
         parentdiv.querySelectorAll(".form-select")[0].id = "originalband";
         parentdiv.querySelectorAll(".form-select")[1].id = "originalmode";
+        
+        input = document.getElementById("originaltime");
+        input.addEventListener("input", (event) => {
+            if(input.value.search(/^[0-9]{1}:[0-9]{2}/) >= 0){
+                sotadataautofill_setTextValue(input, "0" + input.value);
+            }
+        })
         
         sotadataautofill_loadSettings(false);
     }
