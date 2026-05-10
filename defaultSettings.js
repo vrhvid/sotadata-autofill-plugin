@@ -257,8 +257,7 @@ function sotadataautofill_loadSettings(update){
                                 utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
                                 
                                 var y = utcDateTime.getFullYear();
-                                var m = utcDateTime.getMonth();
-                                var m = utcDateTime.getMonth().toString().length == 1 ? "0" + utcDateTime.getMonth() : utcDateTime.getMonth();
+                                var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
                                 var d = utcDateTime.getDate().toString().length == 1 ? "0" + utcDateTime.getDate() : utcDateTime.getDate();
                                 var h = utcDateTime.getHours().toString().length == 1 ? "0" + utcDateTime.getHours() : utcDateTime.getHours();
                                 var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
@@ -272,9 +271,21 @@ function sotadataautofill_loadSettings(update){
 
                     document.getElementById("originaltime").parentElement.appendChild(localinput);
                     
+                    var maxdateobj = new Date();
+                    var maxyear = maxdateobj.getFullYear();
+                    var maxmonth = (maxdateobj.getMonth() + 1).toString().length == 1 ? "0" + (maxdateobj.getMonth() + 1) : (maxdateobj.getMonth() + 1);
+                    var maxdate = maxdateobj.getDate().toString().length == 1 ? "0" + maxdateobj.getDate() : maxdateobj.getDate();
+
+                    var mindateobj = new Date("2002-03-02T00:00:00");
+                    var minyear = mindateobj.getFullYear();
+                    var minmonth = (mindateobj.getMonth() + 1).toString().length == 1 ? "0" + (mindateobj.getMonth() + 1) : (mindateobj.getMonth() + 1);
+                    var mindate = mindateobj.getDate().toString().length == 1 ? "0" + mindateobj.getDate() : mindateobj.getDate();
+
                     localinput2 = document.createElement("input");
                     localinput2.setAttribute("id", "localdate");
                     localinput2.setAttribute("type", "date");
+                    localinput2.setAttribute("min", minyear + "-" + minmonth + "-" + mindate)
+                    localinput2.setAttribute("max", maxyear + "-" + maxmonth + "-" + maxdate)
                     localinput2.setAttribute("class", "form-control form-control-sm ms-1");
                     
                     localinput2.addEventListener("input", () => {
@@ -289,8 +300,7 @@ function sotadataautofill_loadSettings(update){
                             utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
 
                             var y = utcDateTime.getFullYear();
-                            var m = utcDateTime.getMonth();
-                            var m = utcDateTime.getMonth().toString().length == 1 ? "0" + utcDateTime.getMonth() : utcDateTime.getMonth();
+                            var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
                             var d = utcDateTime.getDate().toString().length == 1 ? "0" + utcDateTime.getDate() : utcDateTime.getDate();
                             var h = utcDateTime.getHours().toString().length == 1 ? "0" + utcDateTime.getHours() : utcDateTime.getHours();
                             var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
