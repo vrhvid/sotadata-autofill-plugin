@@ -204,17 +204,12 @@ const observer = new MutationObserver(() => {
         input.addEventListener("input", (event) => {
             if(input.value.search(/^[0-9]{1}:[0-9]{2}/) >= 0){
                 sotadataautofill_setTextValue(input, "0" + input.value);
-
-                if(input.id == "localtime"){
-                    sotadataautofill_setTextValue(document.getElementById("originaltime"), input.value);
-                }
             }
         })
 
         localDateTime.setTime(-62167224120000);
         utcDateTime.setTime(-62167224120000);
     }
-
 });
 
 observer.observe(document.body, {
@@ -233,22 +228,13 @@ function sotadataautofill_loadSettings(update){
 
             document.getElementById("mode").value = document.getElementById("originalmode").value = item.settings.mode;
             document.getElementById("originalmode").dispatchEvent(new Event('change', {bubbles: true }));
-
-            if(item.settings.timeFormat){
-                if(item.settings.timeFormat == "local"){
-                    document.getElementById("radioLocal").checked = true;
-                }       
-            }
-
+            
             if(item.settings.timeFormat != null){
                 document.getElementById("divform").elements["timeFormat"].value = item.settings.timeFormat;
 
                 if(item.settings.timeFormat == "local"){
                     document.getElementById("originaltime").setAttribute("type", "hidden");
                     document.getElementById("originaldate").setAttribute("style", "display: none");
-                    document.getElementById("originaldate").querySelectorAll("input")[0].addEventListener("click", () => {
-                        sotadataautofill_setTextValue(document.getElementById("originaldate").querySelectorAll("input")[0], "2026-04-01");
-                    })
 
                     localinput = document.createElement("input");
                     localinput.setAttribute("id", "localtime");
@@ -267,7 +253,7 @@ function sotadataautofill_loadSettings(update){
                             localDateTime.setHours(Number(timesplit[0]), Number(timesplit[1]));
                             localDateTime.setSeconds(10);
 
-                            if(localDateTime.getSeconds() != 0 || localDateTime.getFullYear() != "0000"){
+                            if(localDateTime.getSeconds() != 0 && localDateTime.getFullYear() != "0000"){
                                 utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
                                 
                                 var y = utcDateTime.getFullYear();
@@ -278,10 +264,11 @@ function sotadataautofill_loadSettings(update){
                                 var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
                                 sotadataautofill_setTextValue(document.getElementById("originaltime"), h + ":" + mi);
                                 sotadataautofill_setTextValue(document.getElementById("originaldate").querySelectorAll("input")[0], y + "-" + m + "-" + d);
+                                
+                                browser.runtime.sendMessage({action: "setSessionStorage", data: y + "-" + m + "-" + d});
                             }
-                        }
-                        
-                    })
+                        } 
+                    });
 
                     document.getElementById("originaltime").parentElement.appendChild(localinput);
                     
@@ -297,8 +284,8 @@ function sotadataautofill_loadSettings(update){
                         localDateTime.setFullYear(timesplit[0])
                         localDateTime.setMonth(timesplit[1]);
                         localDateTime.setDate(timesplit[2]);
-
-                        if(localDateTime.getSeconds() != 0 || localDateTime.getFullYear() != "0000"){
+                        
+                        if(localDateTime.getSeconds() != 0 && localDateTime.getFullYear() != "0000"){
                             utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
 
                             var y = utcDateTime.getFullYear();
@@ -309,18 +296,39 @@ function sotadataautofill_loadSettings(update){
                             var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
                             sotadataautofill_setTextValue(document.getElementById("originaltime"), h + ":" + mi);
                             sotadataautofill_setTextValue(document.getElementById("originaldate").querySelectorAll("input")[0], y + "-" + m + "-" + d);
-                        }
-                        
-                    })
+                            
+                            browser.runtime.sendMessage({action: "setSessionStorage", data: y + "-" + m + "-" + d});
+                        } 
+                    });
 
-                    document.getElementById("originaldate").parentElement.appendChild(localinput2)
+                    document.getElementById("originaldate").parentElement.appendChild(localinput2);
+
+                    message = browser.runtime.sendMessage({action: "getSessionStorage"})
+                    message.then(function(response){
+                        if(response.sessionStorageData != null){
+                            sotadataautofill_setTextValue(localinput2, response.sessionStorageData);
+                        }
+                    });
                     
                     document.getElementById("utcoffset").removeAttribute("disabled");
+                    document.getElementById("radioLocal").checked = true;
                 } else {
                     document.getElementById("utcoffset").setAttribute("disabled", true);
+
+                    browser.runtime.sendMessage({action: "getSessionStorage"}).then(function(response){
+                        if(response.sessionStorageData != null){
+                            sotadataautofill_setTextValue(localinput2, response.sessionStorageData);
+                        }
+                    });
                 }
             } else {
-               document.getElementById("divform").elements["timeFormat"].value = "utc";
+                document.getElementById("divform").elements["timeFormat"].value = "utc";
+
+                browser.runtime.sendMessage({action: "getSessionStorage"}).then(function(response){
+                    if(response.sessionStorageData != null){
+                            sotadataautofill_setTextValue(localinput2, response.sessionStorageData);
+                    }
+                });
             }
 
             if(item.settings.offset != null){
