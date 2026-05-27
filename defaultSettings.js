@@ -193,7 +193,7 @@ const observer = new MutationObserver(() => {
 
         parentdiv.querySelectorAll(".col-8")[1].querySelectorAll("input")[0].id = "originalcallsign";
         parentdiv.querySelectorAll(".col-8")[4].children[0].id = "originaldate";
-        
+                     
         parentdiv.querySelectorAll(".col-8")[5].querySelectorAll("input")[0].id = "originaltime";
         parentdiv.querySelectorAll(".form-select")[0].id = "originalband";
         parentdiv.querySelectorAll(".form-select")[1].id = "originalmode";
@@ -257,7 +257,7 @@ function sotadataautofill_loadSettings(update){
                                 utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
                                 
                                 var y = utcDateTime.getFullYear();
-                                var m = (utcDateTime.getMonth()).toString().length == 1 ? "0" + (utcDateTime.getMonth()) : (utcDateTime.getMonth());
+                                var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
                                 var d = utcDateTime.getDate().toString().length == 1 ? "0" + utcDateTime.getDate() : utcDateTime.getDate();
                                 var h = utcDateTime.getHours().toString().length == 1 ? "0" + utcDateTime.getHours() : utcDateTime.getHours();
                                 var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
@@ -276,15 +276,10 @@ function sotadataautofill_loadSettings(update){
                     var maxmonth = (maxdateobj.getMonth() + 1).toString().length == 1 ? "0" + (maxdateobj.getMonth() + 1) : (maxdateobj.getMonth() + 1);
                     var maxdate = maxdateobj.getDate().toString().length == 1 ? "0" + maxdateobj.getDate() : maxdateobj.getDate();
 
-                    var mindateobj = new Date("2002-03-02T00:00:00");
-                    var minyear = mindateobj.getFullYear();
-                    var minmonth = (mindateobj.getMonth() + 1).toString().length == 1 ? "0" + (mindateobj.getMonth() + 1) : (mindateobj.getMonth() + 1);
-                    var mindate = mindateobj.getDate().toString().length == 1 ? "0" + mindateobj.getDate() : mindateobj.getDate();
-
                     localinput2 = document.createElement("input");
                     localinput2.setAttribute("id", "localdate");
                     localinput2.setAttribute("type", "date");
-                    localinput2.setAttribute("min", minyear + "-" + minmonth + "-" + mindate)
+                    localinput2.setAttribute("min", "2002-03-02")
                     localinput2.setAttribute("max", maxyear + "-" + maxmonth + "-" + maxdate)
                     localinput2.setAttribute("class", "form-control form-control-sm ms-1");
                     
@@ -293,14 +288,14 @@ function sotadataautofill_loadSettings(update){
 
                         var timesplit = localinput2.value.split("-");
                         localDateTime.setFullYear(timesplit[0])
-                        localDateTime.setMonth(timesplit[1]);
+                        localDateTime.setMonth(timesplit[1] - 1);
                         localDateTime.setDate(timesplit[2]);
                         
                         if(localDateTime.getSeconds() != 0 && localDateTime.getFullYear() != "0000"){
                             utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
 
                             var y = utcDateTime.getFullYear();
-                            var m = (utcDateTime.getMonth()).toString().length == 1 ? "0" + (utcDateTime.getMonth()) : (utcDateTime.getMonth());
+                            var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
                             var d = utcDateTime.getDate().toString().length == 1 ? "0" + utcDateTime.getDate() : utcDateTime.getDate();
                             var h = utcDateTime.getHours().toString().length == 1 ? "0" + utcDateTime.getHours() : utcDateTime.getHours();
                             var mi = utcDateTime.getMinutes().toString().length == 1 ? "0" + utcDateTime.getMinutes() : utcDateTime.getMinutes();
@@ -312,7 +307,7 @@ function sotadataautofill_loadSettings(update){
                     });
 
                     document.getElementById("originaldate").parentElement.appendChild(localinput2);
-
+                    
                     message = browser.runtime.sendMessage({action: "getSessionStorage"})
                     message.then(function(response){
                         if(response.sessionStorageData != null){
@@ -324,19 +319,31 @@ function sotadataautofill_loadSettings(update){
                     document.getElementById("radioLocal").checked = true;
                 } else {
                     document.getElementById("utcoffset").setAttribute("disabled", true);
+                    
+                    document.getElementById("originaldate").querySelector("button").addEventListener("click", () => {
+                        document.getElementById("originaldate").querySelector("ngb-datepicker").addEventListener("click", () => {
+                            browser.runtime.sendMessage({action: "setSessionStorage", data: document.getElementById("originaldate").children[0].value});
+                        });
+                    });
 
                     browser.runtime.sendMessage({action: "getSessionStorage"}).then(function(response){
                         if(response.sessionStorageData != null){
-                            sotadataautofill_setTextValue(localinput2, response.sessionStorageData);
+                            sotadataautofill_setTextValue(document.getElementById("originaldate").children[0], response.sessionStorageData);
                         }
                     });
                 }
             } else {
                 document.getElementById("divform").elements["timeFormat"].value = "utc";
 
+                document.getElementById("originaldate").querySelector("button").addEventListener("click", () => {
+                        document.getElementById("originaldate").querySelector("ngb-datepicker").addEventListener("click", () => {
+                            browser.runtime.sendMessage({action: "setSessionStorage", data: document.getElementById("originaldate").children[0].value});
+                        });
+                    });
+
                 browser.runtime.sendMessage({action: "getSessionStorage"}).then(function(response){
                     if(response.sessionStorageData != null){
-                            sotadataautofill_setTextValue(localinput2, response.sessionStorageData);
+                            sotadataautofill_setTextValue(document.getElementById("originaldate").children[0], response.sessionStorageData);
                     }
                 });
             }
