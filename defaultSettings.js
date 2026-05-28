@@ -175,10 +175,13 @@ const observer = new MutationObserver(() => {
     for (i = 0; i < mainbuttons.length; i++){
         if(mainbuttons[i].innerText == "Add Chaser QSO" && !mainbuttons[i].id){
             mainbuttons[i].id = "chaseraddbutton";
+        } else if (mainbuttons[i].innerText == "Add Activation" && !mainbuttons[i].id){
+            mainbuttons[i].id = "activationbutton"
         }
     }
 
     const modal = document.querySelector("app-chaser-modal");
+    const modalactivation = document.querySelector("app-activation-modal")
 
     if(modal && !document.getElementById("sota-autofill-plugin")){
         modal.appendChild(makeDiv());
@@ -209,6 +212,18 @@ const observer = new MutationObserver(() => {
 
         localDateTime.setTime(-62167224120000);
         utcDateTime.setTime(-62167224120000);
+    }
+
+    if(modalactivation && !document.getElementById("sota-autofill-plugin")){
+        modalactivation.appendChild(makeDiv());
+
+        headerdiv = document.querySelector(".modal-header");
+        closebutton = headerdiv.querySelector("button")
+        if(!closebutton.id){
+            closebutton.id = "chaserclosebutton"
+        }
+
+        parentdiv = document.querySelector(".modal-body");
     }
 });
 
