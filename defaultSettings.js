@@ -23,8 +23,8 @@ function makeDiv(){
             var timeFormat = null;
         }
 
-        var settings = {callsign: callsign, timeFormat:timeFormat, offset: utcoffset, band: band, mode: mode}; 
-        browser.storage.local.set({settings});
+        var chasersettings = {callsign: callsign, timeFormat:timeFormat, offset: utcoffset, band: band, mode: mode}; 
+        browser.storage.local.set({chasersettings});
         
         sotadataautofill_loadSettings(true);
     });
@@ -165,12 +165,178 @@ function makeDiv(){
     return div;
 }
 
+function makeActivationDiv(){
+    div = document.createElement("div");
+
+    divform = document.createElement("form");
+    divform.id = "activationDivForm";
+    divform.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        var callsign = document.getElementById("activatorCallsign").value;
+        var band = document.getElementById("band").value;
+        var mode = document.getElementById("mode").value;
+
+        if(document.querySelector('input[name = "timeFormat"]:checked') != null){
+            var timeFormat = document.querySelector('input[name = "timeFormat"]:checked').value;
+
+            if(timeFormat == "local"){
+                var utcoffset = document.getElementById("utcoffset").value;
+            } else {
+                var utcoffset = null;
+            }
+
+        } else {
+            var timeFormat = null;
+        }
+
+        var activatorsettings = {callsign: callsign, timeFormat:timeFormat, offset: utcoffset, band: band, mode: mode}; 
+        browser.storage.local.set({activatorsettings});
+        
+        sotadataautofill_loadActivationSettings(true);
+    });
+
+    divformlabelactivatorcallsign = document.createElement("label");
+    divformlabelactivatorcallsign.setAttribute("for", "activatorCallsign");
+    divformlabelactivatorcallsign.innerHTML = "Default Callsign";
+
+    divformactivatorcallsign = document.createElement("input");
+    divformactivatorcallsign.setAttribute("id", "activatorCallsign");
+    divformactivatorcallsign.setAttribute("type", "text");
+    divformactivatorcallsign.setAttribute("size", "25");
+    divformactivatorcallsign.setAttribute("maxlenght", "20");
+    divformactivatorcallsign.addEventListener("change", function(){
+        let string = this.value;
+        this.value = string.toUpperCase();
+    })
+
+    divformlabelband = document.createElement("label");
+    divformlabelband.setAttribute("for", "band")
+    divformlabelband.innerHTML = "Default Band";
+
+    divformband = document.createElement("select");         //nastavi, da se prikaže samo toliko možnosti kot se jih na originalni strani
+    divformband.setAttribute("id", "band");
+
+    divformbandoptions = ["VLF", "1.8MHz", "3.5Mhz", "5MHz", "7MHz", "10MHz", "14MHz", "18MHz", "21MHz",
+                        "24MHz", "28MHz", "40MHz", "50MHz", "60MHz", "70MHz", "144MHz", "220MHz", "433MHz",
+                        "900MHz", "1240MHz", "2.3GHz", "3.4GHz", "5.6GHz", "10GHz", "24GHz", "Microwave"];
+    for(var i = 0; i < divformbandoptions.length; i++){
+        option = document.createElement("option");
+        option.value = divformbandoptions[i];
+        option.text = divformbandoptions[i];
+        divformband.add(option);
+    }
+
+    divformmodelabel = document.createElement("label");
+    divformmodelabel.setAttribute("for", "mode");
+    divformmodelabel.innerHTML = "Default Mode";
+
+    divformmode = document.createElement("select");
+    divformmode.setAttribute("id", "mode");
+
+    divformmodeoptions = ["AM", "CW", "DATA", "DV", "FM", "OTHER", "SSB"];
+    for(var i = 0; i < divformmodeoptions.length; i++){
+        option = document.createElement("option");
+        option.setAttribute("value", divformmodeoptions[i]);
+        option.innerHTML = divformmodeoptions[i];
+        divformmode.appendChild(option);
+    }
+
+    divformtimeformatlabel = document.createElement("p");
+    divformtimeformatlabel.innerHTML = "Default Time Format";
+
+    divformtimeformatutc = document.createElement("input");
+    divformtimeformatutc.setAttribute("type", "radio");
+    divformtimeformatutc.setAttribute("id", "radioUtc");
+    divformtimeformatutc.setAttribute("name", "timeFormat");
+    divformtimeformatutc.setAttribute("value", "utc");
+    divformtimeformatutc.setAttribute("checked", true);
+    divformtimeformatutc.addEventListener("change", function (){
+        if(document.querySelector('input[name = "timeFormat"]:checked').value == this.value){
+            divformutcoffset.setAttribute("disabled", true);
+        }
+    })
+    divformtimeformatutclabel = document.createElement("label");
+    divformtimeformatutclabel.setAttribute("for", "utc");
+    divformtimeformatutclabel.innerHTML = "UTC";
+
+    divformtimeformatlocal = document.createElement("input");
+    divformtimeformatlocal.setAttribute("type", "radio");
+    divformtimeformatlocal.setAttribute("id", "radioLocal");
+    divformtimeformatlocal.setAttribute("name", "timeFormat");
+    divformtimeformatlocal.setAttribute("value", "local");
+    divformtimeformatlocal.addEventListener("change", function (){
+        if(document.querySelector('input[name = "timeFormat"]:checked').value == this.value){
+            divformutcoffset.removeAttribute("disabled");
+        }
+    })
+    divformtimeformatlocallabel = document.createElement("label");
+    divformtimeformatlocallabel.setAttribute("for", "local");
+    divformtimeformatlocallabel.innerHTML = "Local";
+
+    divformutcoffset = document.createElement("select");
+    divformutcoffset.setAttribute("id", "utcoffset");
+    divformutcoffset.setAttribute("disabled", true);
+
+    divformutcoffsetoptions = ["UTC", "UTC+1", "UTC+2"];
+    divformutcoffsetvalues = [0, -1, -2];
+    for(var i = 0; i < divformutcoffsetoptions.length; i++){
+        option = document.createElement("option");
+        option.value = divformutcoffsetvalues[i];
+        option.text = divformutcoffsetoptions[i];
+        divformutcoffset.add(option);
+        if(divformutcoffsetoptions[i] == "UTC"){
+            option.setAttribute("selected", true);
+        }
+    }
+
+
+    divformsubmit = document.createElement("input");
+    divformsubmit.setAttribute("type", "submit");
+    divformsubmit.setAttribute("value", "SAVE SETTINGS");
+
+    divdiscard = document.createElement("button");
+    divdiscard.innerHTML = "DISCARD CHANGES";
+    divdiscard.addEventListener("click", (event) => {
+        sotadataautofill_loadActivationSettings(true);
+    });
+
+    br = document.createElement("br");
+
+    divform.appendChild(divformlabelactivatorcallsign);
+    divform.appendChild(divformactivatorcallsign);
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(divformlabelband);
+    divform.appendChild(divformband);
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(divformmodelabel);
+    divform.appendChild(divformmode);
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(divformtimeformatlabel);
+    divform.appendChild(divformtimeformatutc);
+    divform.appendChild(divformtimeformatutclabel);
+    divform.appendChild(divformtimeformatlocal);
+    divform.appendChild(divformtimeformatlocallabel);
+    divform.appendChild(divformutcoffset);
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(br.cloneNode());
+    divform.appendChild(divformsubmit);
+
+    div.appendChild(divform);
+    div.appendChild(divdiscard);
+    div.id = "sota-autofill-plugin";
+
+    return div;
+}
+
 var localDateTime = new Date("0000-01-01T00:00:00");
 var utcDateTime = new Date("0000-01-01T00:00:00");
 
 const observer = new MutationObserver(() => {
 
-    
     mainbuttons = document.querySelectorAll("button");
     for (i = 0; i < mainbuttons.length; i++){
         if(mainbuttons[i].innerText == "Add Chaser QSO" && !mainbuttons[i].id){
@@ -215,7 +381,7 @@ const observer = new MutationObserver(() => {
     }
 
     if(modalactivation && !document.getElementById("sota-autofill-plugin")){
-        modalactivation.appendChild(makeDiv());
+        modalactivation.appendChild(makeActivationDiv());
 
         headerdiv = document.querySelector(".modal-header");
         closebutton = headerdiv.querySelector("button")
@@ -224,6 +390,11 @@ const observer = new MutationObserver(() => {
         }
 
         parentdiv = document.querySelector(".modal-body");
+
+        parentdiv.querySelectorAll(".col-12")[0].querySelectorAll("input")[0].id = "activationOriginalCallsign";
+        parentdiv.querySelectorAll(".col-12")[2].querySelectorAll("input")[0].id = "activationOriginalDate";
+
+        sotadataautofill_loadActivationSettings(false);
     }
 });
 
@@ -233,21 +404,21 @@ observer.observe(document.body, {
 });
 
 function sotadataautofill_loadSettings(update){
-    browser.storage.local.get("settings").then(function(item){
-        if(item.settings){
-            document.getElementById("callsign").value = item.settings.callsign;
-            sotadataautofill_setTextValue(document.getElementById("originalcallsign"), item.settings.callsign);
+    browser.storage.local.get("chasersettings").then(function(item){
+        if(item.chasersettings){
+            document.getElementById("callsign").value = item.chasersettings.callsign;
+            sotadataautofill_setTextValue(document.getElementById("originalcallsign"), item.chasersettings.callsign);
             
-            document.getElementById("band").value = document.getElementById("originalband").value = item.settings.band;
+            document.getElementById("band").value = document.getElementById("originalband").value = item.chasersettings.band;
             document.getElementById("originalband").dispatchEvent(new Event('change', {bubbles: true }));
 
-            document.getElementById("mode").value = document.getElementById("originalmode").value = item.settings.mode;
+            document.getElementById("mode").value = document.getElementById("originalmode").value = item.chasersettings.mode;
             document.getElementById("originalmode").dispatchEvent(new Event('change', {bubbles: true }));
             
-            if(item.settings.timeFormat != null){
-                document.getElementById("divform").elements["timeFormat"].value = item.settings.timeFormat;
+            if(item.chasersettings.timeFormat != null){
+                document.getElementById("divform").elements["timeFormat"].value = item.chasersettings.timeFormat;
 
-                if(item.settings.timeFormat == "local"){
+                if(item.chasersettings.timeFormat == "local"){
                     document.getElementById("originaltime").setAttribute("type", "hidden");
                     document.getElementById("originaldate").setAttribute("style", "display: none");
 
@@ -269,7 +440,7 @@ function sotadataautofill_loadSettings(update){
                             localDateTime.setSeconds(10);
 
                             if(localDateTime.getSeconds() != 0 && localDateTime.getFullYear() != "0000"){
-                                utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
+                                utcDateTime.setTime(localDateTime.getTime() + item.chasersettings.offset * 3600000)
                                 
                                 var y = utcDateTime.getFullYear();
                                 var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
@@ -307,7 +478,7 @@ function sotadataautofill_loadSettings(update){
                         localDateTime.setDate(timesplit[2]);
                         
                         if(localDateTime.getSeconds() != 0 && localDateTime.getFullYear() != "0000"){
-                            utcDateTime.setTime(localDateTime.getTime() + item.settings.offset * 3600000)
+                            utcDateTime.setTime(localDateTime.getTime() + item.chasersettings.offset * 3600000)
 
                             var y = utcDateTime.getFullYear();
                             var m = (utcDateTime.getMonth() + 1).toString().length == 1 ? "0" + (utcDateTime.getMonth() + 1) : (utcDateTime.getMonth() + 1);
@@ -363,8 +534,8 @@ function sotadataautofill_loadSettings(update){
                 });
             }
 
-            if(item.settings.offset != null){
-                document.getElementById("utcoffset").value = item.settings.offset;
+            if(item.chasersettings.offset != null){
+                document.getElementById("utcoffset").value = item.chasersettings.offset;
             }
 
             if(update){
@@ -372,6 +543,15 @@ function sotadataautofill_loadSettings(update){
                 document.getElementById("chaseraddbutton").dispatchEvent(new Event("click", {bubbles: true}));
             }
         }  
+    });
+}
+
+function sotadataautofill_loadActivationSettings(update){
+    browser.storage.local.get("activatorsettings").then(function(item){
+        if(item.activatorsettings){
+            document.getElementById("activatorCallsign").value = item.activatorsettings.callsign;
+            sotadataautofill_setTextValue(document.getElementById("activationOriginalCallsign"), item.activatorsettings.callsign);
+        }
     });
 }
 
