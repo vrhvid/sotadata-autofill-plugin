@@ -562,7 +562,11 @@ function sotadataautofill_loadActivationSettings(update){
 
             document.getElementById("addActivationButton").addEventListener("click", function handleFirstRow(){
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[0].querySelectorAll("select")[0].value = item.activatorsettings.band;
+                document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[0].querySelectorAll("select")[0].dispatchEvent(new Event('change', {bubbles: true }));
+
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].value = item.activatorsettings.mode;
+                document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].dispatchEvent(new Event('change', {bubbles: true }));
+                
                 document.getElementById("addActivationButton").removeEventListener("click", handleFirstRow)
             });
 
