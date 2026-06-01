@@ -174,8 +174,8 @@ function makeActivationDiv(){
         event.preventDefault();
 
         var callsign = document.getElementById("activatorCallsign").value;
-        var band = document.getElementById("band").value;
-        var mode = document.getElementById("mode").value;
+        var band = document.getElementById("activatorBand").value;
+        var mode = document.getElementById("activatorMode").value;
 
         if(document.querySelector('input[name = "timeFormat"]:checked') != null){
             var timeFormat = document.querySelector('input[name = "timeFormat"]:checked').value;
@@ -211,11 +211,11 @@ function makeActivationDiv(){
     })
 
     divformlabelband = document.createElement("label");
-    divformlabelband.setAttribute("for", "band")
+    divformlabelband.setAttribute("for", "activatorBand")
     divformlabelband.innerHTML = "Default Band";
 
     divformband = document.createElement("select");         //nastavi, da se prikaže samo toliko možnosti kot se jih na originalni strani
-    divformband.setAttribute("id", "band");
+    divformband.setAttribute("id", "activatorBand");
 
     divformbandoptions = ["VLF", "1.8MHz", "3.5Mhz", "5MHz", "7MHz", "10MHz", "14MHz", "18MHz", "21MHz",
                         "24MHz", "28MHz", "40MHz", "50MHz", "60MHz", "70MHz", "144MHz", "220MHz", "433MHz",
@@ -228,11 +228,11 @@ function makeActivationDiv(){
     }
 
     divformmodelabel = document.createElement("label");
-    divformmodelabel.setAttribute("for", "mode");
+    divformmodelabel.setAttribute("for", "activatorMode");
     divformmodelabel.innerHTML = "Default Mode";
 
     divformmode = document.createElement("select");
-    divformmode.setAttribute("id", "mode");
+    divformmode.setAttribute("id", "activatorMode");
 
     divformmodeoptions = ["AM", "CW", "DATA", "DV", "FM", "OTHER", "SSB"];
     for(var i = 0; i < divformmodeoptions.length; i++){
@@ -342,7 +342,7 @@ const observer = new MutationObserver(() => {
         if(mainbuttons[i].innerText == "Add Chaser QSO" && !mainbuttons[i].id){
             mainbuttons[i].id = "chaseraddbutton";
         } else if (mainbuttons[i].innerText == "Add Activation" && !mainbuttons[i].id){
-            mainbuttons[i].id = "activationbutton"
+            mainbuttons[i].id = "activationaddbutton"
         }
     }
 
@@ -386,13 +386,17 @@ const observer = new MutationObserver(() => {
         headerdiv = document.querySelector(".modal-header");
         closebutton = headerdiv.querySelector("button")
         if(!closebutton.id){
-            closebutton.id = "chaserclosebutton"
+            closebutton.id = "activationCloseButton"
         }
 
         parentdiv = document.querySelector(".modal-body");
 
         parentdiv.querySelectorAll(".col-12")[0].querySelectorAll("input")[0].id = "activationOriginalCallsign";
         parentdiv.querySelectorAll(".col-12")[2].querySelectorAll("input")[0].id = "activationOriginalDate";
+
+        var nrows = parentdiv.querySelectorAll(".row").length;
+        var nbuttons = parentdiv.querySelectorAll(".row")[nrows - 1].querySelectorAll("button").length;
+        parentdiv.querySelectorAll(".row")[nrows - 1].querySelectorAll("button")[nbuttons - 1].id = "addActivationButton";
 
         sotadataautofill_loadActivationSettings(false);
     }
@@ -551,8 +555,27 @@ function sotadataautofill_loadActivationSettings(update){
         if(item.activatorsettings){
             document.getElementById("activatorCallsign").value = item.activatorsettings.callsign;
             sotadataautofill_setTextValue(document.getElementById("activationOriginalCallsign"), item.activatorsettings.callsign);
+            
+            document.getElementById("activatorBand").value = item.activatorsettings.band;
+
+            document.getElementById("activatorMode").value = item.activatorsettings.mode;
+
+            document.getElementById("addActivationButton").addEventListener("click", function handleFirstRow(){
+                document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[0].querySelectorAll("select")[0].value = item.activatorsettings.band;
+                document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].value = item.activatorsettings.mode;
+                document.getElementById("addActivationButton").removeEventListener("click", handleFirstRow)
+            });
+
+            if(update){
+                document.getElementById("activationCloseButton").dispatchEvent(new Event("click", {bubbles: true}));
+                document.getElementById("activationaddbutton").dispatchEvent(new Event("click", {bubbles: true}));
+            }
         }
     });
+}
+
+function sotadataautofill_handleActivation(){
+
 }
 
 function sotadataautofill_setTextValue(element, value) {
