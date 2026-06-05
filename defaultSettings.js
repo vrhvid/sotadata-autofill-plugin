@@ -177,11 +177,11 @@ function makeActivationDiv(){
         var band = document.getElementById("activatorBand").value;
         var mode = document.getElementById("activatorMode").value;
 
-        if(document.querySelector('input[name = "timeFormat"]:checked') != null){
-            var timeFormat = document.querySelector('input[name = "timeFormat"]:checked').value;
+        if(document.querySelector('input[name = "activatorTimeFormat"]:checked') != null){
+            var timeFormat = document.querySelector('input[name = "activatorTimeFormat"]:checked').value;
 
             if(timeFormat == "local"){
-                var utcoffset = document.getElementById("utcoffset").value;
+                var utcoffset = document.getElementById("activationUtcOffset").value;
             } else {
                 var utcoffset = null;
             }
@@ -247,8 +247,8 @@ function makeActivationDiv(){
 
     divformtimeformatutc = document.createElement("input");
     divformtimeformatutc.setAttribute("type", "radio");
-    divformtimeformatutc.setAttribute("id", "radioUtc");
-    divformtimeformatutc.setAttribute("name", "timeFormat");
+    divformtimeformatutc.setAttribute("id", "activatorRadioUtc");
+    divformtimeformatutc.setAttribute("name", "activatorTimeFormat");
     divformtimeformatutc.setAttribute("value", "utc");
     divformtimeformatutc.setAttribute("checked", true);
     divformtimeformatutc.addEventListener("change", function (){
@@ -257,16 +257,16 @@ function makeActivationDiv(){
         }
     })
     divformtimeformatutclabel = document.createElement("label");
-    divformtimeformatutclabel.setAttribute("for", "utc");
+    divformtimeformatutclabel.setAttribute("for", "activatorRadioUtc");
     divformtimeformatutclabel.innerHTML = "UTC";
 
     divformtimeformatlocal = document.createElement("input");
     divformtimeformatlocal.setAttribute("type", "radio");
-    divformtimeformatlocal.setAttribute("id", "radioLocal");
-    divformtimeformatlocal.setAttribute("name", "timeFormat");
+    divformtimeformatlocal.setAttribute("id", "activatorRadioLocal");
+    divformtimeformatlocal.setAttribute("name", "activatorTimeFormat");
     divformtimeformatlocal.setAttribute("value", "local");
     divformtimeformatlocal.addEventListener("change", function (){
-        if(document.querySelector('input[name = "timeFormat"]:checked').value == this.value){
+        if(document.querySelector('input[name = "activatorTimeFormat"]:checked').value == this.value){
             divformutcoffset.removeAttribute("disabled");
         }
     })
@@ -275,7 +275,7 @@ function makeActivationDiv(){
     divformtimeformatlocallabel.innerHTML = "Local";
 
     divformutcoffset = document.createElement("select");
-    divformutcoffset.setAttribute("id", "utcoffset");
+    divformutcoffset.setAttribute("id", "activationUtcOffset");
     divformutcoffset.setAttribute("disabled", true);
 
     divformutcoffsetoptions = ["UTC", "UTC+1", "UTC+2"];
@@ -454,7 +454,7 @@ function sotadataautofill_loadSettings(update){
                                 sotadataautofill_setTextValue(document.getElementById("originaltime"), h + ":" + mi);
                                 sotadataautofill_setTextValue(document.getElementById("originaldate").querySelectorAll("input")[0], y + "-" + m + "-" + d);
                                 
-                                browser.runtime.sendMessage({action: "setSessionStorage", data: y + "-" + m + "-" + d});
+                                browser.runtime.sendMessage({action: "setChaserSessionStorage", data: y + "-" + m + "-" + d});
                             }
                         } 
                     });
@@ -492,7 +492,7 @@ function sotadataautofill_loadSettings(update){
                             sotadataautofill_setTextValue(document.getElementById("originaltime"), h + ":" + mi);
                             sotadataautofill_setTextValue(document.getElementById("originaldate").querySelectorAll("input")[0], y + "-" + m + "-" + d);
                             
-                            browser.runtime.sendMessage({action: "setSessionStorage", data: y + "-" + m + "-" + d});
+                            browser.runtime.sendMessage({action: "setChaserSessionStorage", data: y + "-" + m + "-" + d});
                         } 
                     });
 
@@ -512,7 +512,7 @@ function sotadataautofill_loadSettings(update){
                     
                     document.getElementById("originaldate").querySelector("button").addEventListener("click", () => {
                         document.getElementById("originaldate").querySelector("ngb-datepicker").addEventListener("click", () => {
-                            browser.runtime.sendMessage({action: "setSessionStorage", data: document.getElementById("originaldate").children[0].value});
+                            browser.runtime.sendMessage({action: "setChaserSessionStorage", data: document.getElementById("originaldate").children[0].value});
                         });
                     });
 
@@ -527,7 +527,7 @@ function sotadataautofill_loadSettings(update){
 
                 document.getElementById("originaldate").querySelector("button").addEventListener("click", () => {
                         document.getElementById("originaldate").querySelector("ngb-datepicker").addEventListener("click", () => {
-                            browser.runtime.sendMessage({action: "setSessionStorage", data: document.getElementById("originaldate").children[0].value});
+                            browser.runtime.sendMessage({action: "setChaserSessionStorage", data: document.getElementById("originaldate").children[0].value});
                         });
                     });
 
@@ -553,22 +553,160 @@ function sotadataautofill_loadSettings(update){
 function sotadataautofill_loadActivationSettings(update){
     browser.storage.local.get("activatorsettings").then(function(item){
         if(item.activatorsettings){
+            if(item.activatorsettings.timeFormat == "local"){
+                document.getElementById("activationUtcOffset").removeAttribute("disabled");
+                document.getElementById("activatorRadioLocal").checked = true;
+            }
+
             document.getElementById("activatorCallsign").value = item.activatorsettings.callsign;
             sotadataautofill_setTextValue(document.getElementById("activationOriginalCallsign"), item.activatorsettings.callsign);
+
+            var activationdate = null;
+            browser.runtime.sendMessage({action: "getActivatorSessionStorage"}).then(function(response){
+                if(response.sessionStorageData != null){
+                    sotadataautofill_setTextValue(document.getElementById("activationOriginalDate"), response.sessionStorageData);
+                    activationdate = response.sessionStorageData;
+                }
+            });
             
             document.getElementById("activatorBand").value = item.activatorsettings.band;
 
             document.getElementById("activatorMode").value = item.activatorsettings.mode;
 
-            document.getElementById("addActivationButton").addEventListener("click", function handleFirstRow(){
+            document.getElementById("activationDivForm").elements["activatorTimeFormat"].value = item.activatorsettings.timeFormat;
+
+            document.getElementById("addActivationButton").addEventListener("click", () => {
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[0].querySelectorAll("select")[0].value = item.activatorsettings.band;
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[0].querySelectorAll("select")[0].dispatchEvent(new Event('change', {bubbles: true }));
-
+                
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].value = item.activatorsettings.mode;
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].dispatchEvent(new Event('change', {bubbles: true }));
+            }, {once: true});
+
+            document.getElementById("addActivationButton").addEventListener("click", () => {
+                var rownumber = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]").length - 2;
+                parentrow = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber];
+
+                timeinput = parentrow.querySelector(".col-5").querySelector(".form-control");
+                dateinput = parentrow.querySelector(".col-7").querySelector(".form-control");
                 
-                document.getElementById("addActivationButton").removeEventListener("click", handleFirstRow)
+                if(item.activatorsettings.timeFormat == "local"){
+
+                    timeinput.setAttribute("style", "display: none");
+                    
+                    localtimeinput = document.createElement("input");
+                    localtimeinput.setAttribute("id", "activatorlocaltime");
+                    localtimeinput.setAttribute("placeholder", "hh:mm");
+                    localtimeinput.setAttribute("class", "form-control form-control-sm ms-1");
+
+                    timeinput.parentElement.appendChild(localtimeinput);
+
+                    var localdate = new Date("0000-01-01T00:00:00");
+                    var utcdate = new Date("0000-01-01T00:00:00");
+
+                    localtimeinput.addEventListener("input", () => {
+                        if(localtimeinput.value.search(/^[0-9]{1}:[0-9]{2}/) >= 0){
+                            sotadataautofill_setTextValue(localtimeinput, "0" + localtimeinput.value);
+                            sotadataautofill_setTextValue(timeinput, localtimeinput.value);
+                        } else {
+                            sotadataautofill_setTextValue(timeinput, localtimeinput.value);
+                        }
+
+                        localtime = localtimeinput.value.split(":");
+
+                        if(localtimeinput.value.search(/^[0-9]{2}:[0-9]{2}/) >= 0){
+                            var localtime = localtimeinput.value.split(":");
+                            localdate.setHours(Number(localtime[0]), Number(localtime[1]));
+                            localdate.setSeconds(10);
+
+                            if(localdate.getSeconds() != 0 && localdate.getFullYear() != "0000"){
+                                utcdate.setTime(localdate.getTime() + item.activatorsettings.offset * 3600000)
+                                
+                                var y = utcdate.getFullYear();
+                                var m = (utcdate.getMonth() + 1).toString().length == 1 ? "0" + (utcdate.getMonth() + 1) : (utcdate.getMonth() + 1);
+                                var d = utcdate.getDate().toString().length == 1 ? "0" + utcdate.getDate() : utcdate.getDate();
+                                var h = utcdate.getHours().toString().length == 1 ? "0" + utcdate.getHours() : utcdate.getHours();
+                                var mi = utcdate.getMinutes().toString().length == 1 ? "0" + utcdate.getMinutes() : utcdate.getMinutes();
+                                sotadataautofill_setTextValue(timeinput, h + ":" + mi);
+                                sotadataautofill_setTextValue(dateinput, y + "-" + m + "-" + d);
+                                browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: y + "-" + m + "-" + d});
+                            }
+                        }
+
+                    });
+
+                    var maxdateobj = new Date();
+                    var maxyear = maxdateobj.getFullYear();
+                    var maxmonth = (maxdateobj.getMonth() + 1).toString().length == 1 ? "0" + (maxdateobj.getMonth() + 1) : (maxdateobj.getMonth() + 1);
+                    var maxdate = maxdateobj.getDate().toString().length == 1 ? "0" + maxdateobj.getDate() : maxdateobj.getDate();
+
+                    localdateinput = document.createElement("input");
+                    localdateinput.setAttribute("id", "activatorlocaldate");
+                    localdateinput.setAttribute("type", "date");
+                    localdateinput.setAttribute("min", "2002-03-02")
+                    localdateinput.setAttribute("max", maxyear + "-" + maxmonth + "-" + maxdate)
+                    localdateinput.setAttribute("class", "form-control form-control-sm ms-1");
+
+                    dateinput.parentElement.setAttribute("style", "display: none");
+                    dateinput.parentElement.parentElement.appendChild(localdateinput);
+                    
+                    
+                    localdateinput.addEventListener("input", () => {
+                        
+                        var timesplit = localdateinput.value.split("-");
+                        localdate.setFullYear(timesplit[0])
+                        localdate.setMonth(timesplit[1] - 1);
+                        localdate.setDate(timesplit[2]);
+                        
+                        if(localdate.getSeconds() != 0 && localdate.getFullYear() != "0000"){
+                            utcdate.setTime(localdate.getTime() + item.activatorsettings.offset * 3600000)
+
+                            var y = utcdate.getFullYear();
+                            var m = (utcdate.getMonth() + 1).toString().length == 1 ? "0" + (utcdate.getMonth() + 1) : (utcdate.getMonth() + 1);
+                            var d = utcdate.getDate().toString().length == 1 ? "0" + utcdate.getDate() : utcdate.getDate();
+                            var h = utcdate.getHours().toString().length == 1 ? "0" + utcdate.getHours() : utcdate.getHours();
+                            var mi = utcdate.getMinutes().toString().length == 1 ? "0" + utcdate.getMinutes() : utcdate.getMinutes();
+                            sotadataautofill_setTextValue(timeinput, h + ":" + mi);
+                            sotadataautofill_setTextValue(dateinput, y + "-" + m + "-" + d);  
+                            browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: y + "-" + m + "-" + d});
+                        } 
+                    });
+
+                    if(rownumber == 0){
+                        if(activationdate != null){
+                            sotadataautofill_setTextValue(localdateinput, activationdate);
+                        } else {
+                            sotadataautofill_setTextValue(localdateinput, document.getElementById("activationOriginalDate").value);
+                        }
+                    }
+
+                    if(rownumber > 0){
+                        prevtime = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber - 1].querySelector(".col-5").querySelectorAll(".form-control")[1].value
+                        sotadataautofill_setTextValue(localtimeinput, prevtime);
+
+                        prevdate = (document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber - 1].querySelector(".col-7").querySelectorAll(".form-control")[1]).value
+                        sotadataautofill_setTextValue(localdateinput, prevdate);
+                    }
+                } else {
+                    dateinput.parentElement.querySelector("button").addEventListener("click", () => {
+                        dateinput.parentElement.querySelector("ngb-datepicker").addEventListener("click", () => {
+                            browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: dateinput.value});
+                        });
+                    });
+
+                    browser.runtime.sendMessage({action: "getActivatorSessionStorage"}).then(function(response){
+                        if(response.sessionStorageData != null){
+                            sotadataautofill_setTextValue(dateinput, response.sessionStorageData);
+                        }
+                    });
+
+                    document.getElementById("divform").elements["timeFormat"].value = "utc";
+                }
             });
+
+            if(item.activatorsettings.offset != null){
+                document.getElementById("activationUtcOffset").value = item.activatorsettings.offset;
+            }
 
             if(update){
                 document.getElementById("activationCloseButton").dispatchEvent(new Event("click", {bubbles: true}));
@@ -576,10 +714,6 @@ function sotadataautofill_loadActivationSettings(update){
             }
         }
     });
-}
-
-function sotadataautofill_handleActivation(){
-
 }
 
 function sotadataautofill_setTextValue(element, value) {
