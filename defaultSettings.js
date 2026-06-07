@@ -551,6 +551,14 @@ function sotadataautofill_loadSettings(update){
 }
 
 function sotadataautofill_loadActivationSettings(update){
+    var activationdate = null;
+    browser.runtime.sendMessage({action: "getActivatorSessionStorage"}).then(function(response){
+        if(response.sessionStorageData != null){
+            sotadataautofill_setTextValue(document.getElementById("activationOriginalDate"), response.sessionStorageData);
+            activationdate = response.sessionStorageData;
+        }
+    });
+
     browser.storage.local.get("activatorsettings").then(function(item){
         if(item.activatorsettings){
             if(item.activatorsettings.timeFormat == "local"){
@@ -561,13 +569,6 @@ function sotadataautofill_loadActivationSettings(update){
             document.getElementById("activatorCallsign").value = item.activatorsettings.callsign;
             sotadataautofill_setTextValue(document.getElementById("activationOriginalCallsign"), item.activatorsettings.callsign);
 
-            var activationdate = null;
-            browser.runtime.sendMessage({action: "getActivatorSessionStorage"}).then(function(response){
-                if(response.sessionStorageData != null){
-                    sotadataautofill_setTextValue(document.getElementById("activationOriginalDate"), response.sessionStorageData);
-                    activationdate = response.sessionStorageData;
-                }
-            });
             
             document.getElementById("activatorBand").value = item.activatorsettings.band;
 
@@ -581,6 +582,11 @@ function sotadataautofill_loadActivationSettings(update){
                 
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].value = item.activatorsettings.mode;
                 document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[0].querySelectorAll(".col-6")[1].querySelectorAll("select")[0].dispatchEvent(new Event('change', {bubbles: true }));
+
+                var activationdate = document.getElementById("activationOriginalDate").value;
+                if(activationdate != null && activationdate != ""){
+                    browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: activationdate});
+                }
             }, {once: true});
 
             document.getElementById("addActivationButton").addEventListener("click", () => {
@@ -688,19 +694,34 @@ function sotadataautofill_loadActivationSettings(update){
                         sotadataautofill_setTextValue(localdateinput, prevdate);
                     }
                 } else {
+                   
+                    var activationdate = document.getElementById("activationOriginalDate").value;
+                    if(activationdate != null && activationdate != ""){
+                        browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: activationdate});
+                    }
+                
+                    timeinput.addEventListener("input", () => {
+                        if(timeinput.value.search(/^[0-9]{1}:[0-9]{2}/) >= 0){
+                            sotadataautofill_setTextValue(timeinput, "0" + timeinput.value);
+                        }
+                    });
+
+                    if(rownumber > 0){
+                        prevtime = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber - 1].querySelector(".col-5").querySelectorAll(".form-control")[0].value
+                        sotadataautofill_setTextValue(document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber].querySelector(".col-5").querySelectorAll(".form-control")[0], prevtime);
+                    }
+
+                    currentdate = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber].querySelector(".col-7").querySelectorAll(".form-control")[0].value
+
+                    browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: currentdate});
+                
                     dateinput.parentElement.querySelector("button").addEventListener("click", () => {
                         dateinput.parentElement.querySelector("ngb-datepicker").addEventListener("click", () => {
                             browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: dateinput.value});
                         });
                     });
 
-                    browser.runtime.sendMessage({action: "getActivatorSessionStorage"}).then(function(response){
-                        if(response.sessionStorageData != null){
-                            sotadataautofill_setTextValue(dateinput, response.sessionStorageData);
-                        }
-                    });
-
-                    document.getElementById("divform").elements["timeFormat"].value = "utc";
+                    document.getElementById("activationDivForm").elements["activatorTimeFormat"].value = "utc";
                 }
             });
 
@@ -712,6 +733,34 @@ function sotadataautofill_loadActivationSettings(update){
                 document.getElementById("activationCloseButton").dispatchEvent(new Event("click", {bubbles: true}));
                 document.getElementById("activationaddbutton").dispatchEvent(new Event("click", {bubbles: true}));
             }
+        } else {
+            var activationdate = document.getElementById("activationOriginalDate").value;
+            if(activationdate != null && activationdate != ""){
+                browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: activationdate});
+            }
+        
+            timeinput.addEventListener("input", () => {
+                if(timeinput.value.search(/^[0-9]{1}:[0-9]{2}/) >= 0){
+                    sotadataautofill_setTextValue(timeinput, "0" + timeinput.value);
+                }
+            });
+
+            if(rownumber > 0){
+                prevtime = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber - 1].querySelector(".col-5").querySelectorAll(".form-control")[0].value
+                sotadataautofill_setTextValue(document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber].querySelector(".col-5").querySelectorAll(".form-control")[0], prevtime);
+            }
+
+            currentdate = document.querySelector(".modal-body").querySelectorAll("div[class = \"row\"]")[rownumber].querySelector(".col-7").querySelectorAll(".form-control")[0].value
+
+            browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: currentdate});
+        
+            dateinput.parentElement.querySelector("button").addEventListener("click", () => {
+                dateinput.parentElement.querySelector("ngb-datepicker").addEventListener("click", () => {
+                    browser.runtime.sendMessage({action: "setActivatorSessionStorage", data: dateinput.value});
+                });
+            });
+
+            document.getElementById("activationDivForm").elements["activatorTimeFormat"].value = "utc";
         }
     });
 }

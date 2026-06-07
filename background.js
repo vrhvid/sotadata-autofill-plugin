@@ -19,10 +19,10 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
 
     } else if(request.action == "setChaserSessionStorage"){
-        var chaseSave = {savedDate: request.data}
+        var chaseSave = {savedDate: request.data};
         browser.storage.session.set({chaseSave});
     } else if (request.action == "setActivatorSessionStorage"){
-        var activationSave = {savedDate: request.data}
+        var activationSave = {savedDate: request.data};
         browser.storage.session.set({activationSave});
     }
 });
